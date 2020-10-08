@@ -10,30 +10,40 @@ class WeatherSearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: BlocConsumer<WeatherCubit, WeatherState>(
-            listener: (context, state) {
-              if (state is WeatherErrorState) {
-                Scaffold.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                  ),
-                );
-              }
-            },
-            builder: (context, state) {
-              if (state is WeatherInitState) {
-                return displayForm();
-              } else if (state is WeatherLoadingState) {
-                return displayLoading();
-              } else if (state is WeatherLoadedState) {
-                return displayLoadedData(state.weather);
-              } else {
-                return displayForm();
-              }
-            },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment(1, 1),
+              colors: [const Color(0xff00eeee), const Color(0xff0088ff)],
+              tileMode: TileMode.repeated),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: BlocConsumer<WeatherCubit, WeatherState>(
+              listener: (context, state) {
+                if (state is WeatherErrorState) {
+                  Scaffold.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                    ),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is WeatherInitState) {
+                  context.bloc<WeatherCubit>().getWeather();
+                  return displayForm();
+                } else if (state is WeatherLoadingState) {
+                  return displayLoading();
+                } else if (state is WeatherLoadedState) {
+                  return displayLoadedData(state.weather);
+                } else {
+                  return displayForm();
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -51,27 +61,41 @@ class WeatherSearchScreen extends StatelessWidget {
   }
 
   Widget displayLoadedData(Weather weather) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Temperature: ${weather.temperatureCelcius.toString()}',
-            style: TextStyle(
-              fontSize: 24,
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Temperature',
+              style: TextStyle(fontSize: 21, color: Colors.white),
             ),
-          ),
-          SizedBox(
-            height: 16,
-          ),
-          Text(
-            weather.cityName,
-            style: TextStyle(
-              fontSize: 14,
+            Text(
+              '${weather.temperatureCelcius.toInt()}° C',
+              style: TextStyle(
+                fontSize: 80,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-          WeatherForm(),
-        ],
+            SizedBox(
+              height: 16,
+            ),
+            Text(
+              weather.cityName,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            WeatherForm(),
+          ],
+        ),
       ),
     );
   }
@@ -92,17 +116,33 @@ class _WeatherFormState extends State<WeatherForm> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        TextField(
-          onSubmitted: (value) => getWeatherByCity(context, value),
-          controller: _cityNameController,
-          decoration: InputDecoration(
-            hintText: 'Input city name',
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 16),
+          child: TextField(
+            style: TextStyle(fontSize: 24, color: Colors.white),
+            onSubmitted: (value) => getWeatherByCity(context, value),
+            controller: _cityNameController,
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+                hintText: 'Input city name',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1.0),
+                  borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 2.0),
+                  borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                ),
+                hintStyle: TextStyle(color: Colors.white)),
+            onChanged: (value) {
+              setState(() {
+                _cityName = value;
+              });
+            },
           ),
-          onChanged: (value) {
-            setState(() {
-              _cityName = value;
-            });
-          },
         ),
       ],
     );
@@ -110,6 +150,6 @@ class _WeatherFormState extends State<WeatherForm> {
 
   void getWeatherByCity(BuildContext context, String cityName) {
     final weatherCubit = context.bloc<WeatherCubit>();
-    weatherCubit.getWeather(cityName);
+    weatherCubit.getWeatherByCity(cityName);
   }
 }
