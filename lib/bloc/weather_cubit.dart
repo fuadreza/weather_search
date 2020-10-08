@@ -7,12 +7,23 @@ class WeatherCubit extends Cubit<WeatherState> {
 
   WeatherCubit(this._repository) : super(WeatherInitState());
 
-  Future<void> getWeather(String cityName) async {
+  Future<void> getWeatherByCity(String cityName) async {
     try {
       emit(WeatherLoadingState());
-      final weather = await _repository.fetchWeather(cityName);
+      final weather = await _repository.fetchWeatherByCity(cityName);
       emit(WeatherLoadedState(weather));
     } on NetworkException {
+      emit(WeatherErrorState(
+          'Couldn\'t connect to server. Please check your internet connection'));
+    }
+  }
+
+  Future<void> getWeather() async {
+    try {
+      emit(WeatherLoadingState());
+      final weather = await _repository.fetchWeather();
+      emit(WeatherLoadedState(weather));
+    }on NetworkException {
       emit(WeatherErrorState(
           'Couldn\'t connect to server. Please check your internet connection'));
     }
